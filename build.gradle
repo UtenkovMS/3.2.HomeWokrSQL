@@ -1,0 +1,61 @@
+plugins {
+    id 'java'
+}
+
+group 'ru.netology'
+version '1.0-SNAPSHOT'
+
+java {
+            sourceCompatibility = 11
+}
+
+// кодировка файлов (если используете русский язык в файлах)
+compileJava.options.encoding = "UTF-8"
+compileTestJava.options.encoding = "UTF-8"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Новейшая версия библиотеки тестирования JUnit, поддерживающая модульные тесты и интеграционные тесты.
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    // Драйвер MySQL для подключения к базе данных. Версия довольно старая, рекомендую обновить её до последней стабильной версии (например, 8.0.33).
+    testImplementation 'mysql:mysql-connector-java:8.0.30'
+    //
+    testImplementation 'commons-dbutils:commons-dbutils:1.7'
+    // Библиотека автоматизации веб-тестов, позволяет запускать браузеры и проверять функциональность фронтенда.
+    testImplementation 'com.codeborne:selenide:6.19.1'
+    // Полезная библиотека для генерации фиктивных данных в тестах (ФИО, адреса, телефоны и др.).
+    implementation 'com.github.javafaker:javafaker:1.0.2'
+    // Устраняет избыточный код (геттеры/сеттеры, конструкторы) облегчает написание тестов.
+    testImplementation 'org.projectlombok:lombok:1.18.36'
+    // Обеспечивает поддержку аннотаций Lombok на этапе запуска тестов
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
+    // Инструмент логирования, полезен для отслеживания сообщений и диагностики проблем в тестах.
+    // Зависимость необходимая для упрощенного логирования ошибок
+    testImplementation 'org.slf4j:slf4j-simple:1.7.32'
+}
+
+test {
+    useJUnitPlatform()
+    // Когда ты запускаешь тесты командой вроде gradlew test -Dselenide.headless=true, ты передаёшь специальный ключ -Dselenide.headless.
+    // Этот ключ говорит Selenide запустить браузер без графического интерфейса, т.е. "headless mode".
+    // Значение этого ключа (true или false) автоматически считывается системой и передаётся в систему свойств JVM с именем selenide.headless.
+    // Таким образом, если в команде запуска тестов задать -Dselenide.headless=true,
+    // то браузер запустится в режиме без отображения окна (это полезно для CI-серверов и быстрого выполнения тестов).
+    systemProperty 'selenide.headless', System.getProperty('selenide.headless')
+    // Эта строка кода используется в Java-приложениях для задания значения свойства db.url,
+    // которое представляет собой адрес базы данных (например, MySQL).
+    // Название вместо db.url можно указать любое, главное чтобы потом его везде одинаково использовать
+    systemProperty 'db.url',
+            System.getProperty ('db.url', "jdbc:mysql://localhost:3306/app")
+    // Эта строка устанавливает настройки браузера Google Chrome при выполнении тестов.
+    // Отключается автоматическое предложение сохранить пароль (менеджер паролей), поскольку это может повлиять на поведение тестов и вызвать нестабильность.
+    // По умолчанию Selenide читает значение из переменных среды (через System.getProperty()) и если оно отсутствует,
+    // то задаёт своё собственное дефолтное значение "profile.password_manager_leak_detection=false".
+    // То есть, если у тебя вдруг возникнут проблемы с менеджером паролей (Chrome начнёт предлагать сохранять пароль, мешая выполнению тестов),
+    // эта настройка гарантирует, что такое поведение будет заблокировано.
+    systemProperty 'chromeoptions.prefs',
+            System.getProperty('chromeoptions.prefs', "profile.password_manager_leak_detection=false")
+}
